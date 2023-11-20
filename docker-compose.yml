@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  spa:
+    image: nginx:latest
+    volumes:
+      - ./spa/build:/usr/share/nginx/html:ro
+      - ./spa/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - mynetwork
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - mynetwork
+    depends_on:
+      - opa
+
+  opa:
+    build: ./opa
+    volumes:
+      - ./opa/policies:/app
+    ports:
+      - "8181:8181"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
